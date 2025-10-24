@@ -1,0 +1,3 @@
+TypeError: argument handler must be a function
+source: routes
+solution: make sure all routes are exported
