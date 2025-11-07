@@ -3,6 +3,7 @@ const router = express.Router();
 const asyncWrapper = require('../middleware/asyncWrapper');
 const Category = require('../models/Category');
 const NotFoundError = require('../middleware/error-handler')
+const authenticate = require('../middleware/auth');
 
 router.get('/', asyncWrapper( async( req, res) => {
     const categories = await Category.find();
@@ -10,7 +11,7 @@ router.get('/', asyncWrapper( async( req, res) => {
     res.status(200).json(categories);
 }));
 
-router.post('/', asyncWrapper(async (req,res) => {
+router.post('/', authenticate, asyncWrapper(async (req,res) => {
     const newCategory = await new Category(req.body).save();
     res.status(201).json(newCategory)
 }));

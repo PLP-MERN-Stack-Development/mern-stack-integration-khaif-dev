@@ -17,6 +17,44 @@ router.post('/register', userValidationRules, validateUser, asyncWrapper(async (
   });
 }));
 
+// login user
+router.post('/login', asyncWrapper(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Please provide email and password' });
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  // Generate JWT token
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign(
+    { id: user._id, username: user.username, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  res.status(200).json({
+    message: 'Login successful',
+    token,
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    }
+  });
+}));
+
 // get user 
 router.get('/', asyncWrapper( async(req,res) => {
     const users = await User.find();
